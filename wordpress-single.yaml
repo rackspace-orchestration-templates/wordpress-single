@@ -138,7 +138,7 @@ parameters:
       description: "Must be shorter than 64 characters or fewer."
 
   kitchen:
-    description:
+    description: "URL for a git repo containing required cookbooks"
     type: string
     default: https://github.com/rackspace-orchestration-templates/wordpress-multi.git
 
