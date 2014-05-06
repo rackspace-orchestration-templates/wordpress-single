@@ -127,6 +127,11 @@ parameters:
     type: string
     default: https://github.com/rackspace-orchestration-templates/wordpress-multi.git
 
+  chef_version:
+    description: Version of chef client to use
+    type: string
+    default: 11.12.4
+
 resources:
   # Random password generation
   database_password:
@@ -213,6 +218,7 @@ resources:
       private_key: { get_attr: [ssh_key, private_key] }
       host: { get_attr: [wordpress_server, accessIPv4] }
       kitchen: { get_param: kitchen }
+      chef_version: { get_param: chef_version }
       node:
         apache:
           listen_ports: [8080]
