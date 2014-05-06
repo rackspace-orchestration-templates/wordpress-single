@@ -216,19 +216,9 @@ resources:
       key_name: { get_resource: ssh_key }
 
   # Chef resources
-  bootstrap_server:
-    type: "OS::Heat::ChefSolo"
-    properties:
-      username: root
-      private_key: { get_attr: [ssh_key, private_key] }
-      host: { get_attr: [wordpress_server, accessIPv4] }
-      kitchen: { get_param: kitchen }
-      node:
-        run_list: ["recipe[apt]",
-                   "recipe[build-essential]"]
   wordpress_setup:
     type: "OS::Heat::ChefSolo"
-    depends_on: bootstrap_server
+    depends_on: wordpress_server
     properties:
       username: root
       private_key: { get_attr: [ssh_key, private_key] }
@@ -277,7 +267,11 @@ resources:
         wordpress:
           version: { get_param: version }
           server_aliases: [{ get_param: domain }]
-          dir: "/var/www/vhosts/wordpress"
+          dir:
+            str_replace:
+              template: "/var/www/vhosts/%domain%"
+              params:
+                "%domain%": { get_param: domain }
           db:
             name: { get_param: database_name }
             user: { get_param: username }
