@@ -57,7 +57,7 @@ the `-P` flag to specify a custom parameter.
 * `flavor`: Cloud server size to use. (Default: 4 GB Performance)
 * `domain`: Domain to be used for the WordPress installation  (Default:
   example.com)
-* `version`: Version of WordPress to install (Default: 3.8.1)
+* `version`: Version of WordPress to install (Default: 3.9.1)
 * `prefix`: The prefix to use for WordPress database tables (Default: wp_)
 * `database_name`: Name to use for the WordPress database (Default: wordpress)
 * `username`: Username for database, system, and WordPress logins (Default:
