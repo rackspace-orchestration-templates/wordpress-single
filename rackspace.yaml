@@ -5,7 +5,8 @@ application-version: 3.9.1
 flavor: Single Linux server with WordPress 3.9.1 and MySQL 5.5
 flavor-weight: 2
 abstract: |
-      [WordPress](http://wordpress.org/about/) installed with
+      A single Linux server running
+      [WordPress](http://wordpress.org/about/),
       [Apache](http://httpd.apache.org/),
       [vsftpd](https://security.appspot.com/vsftpd.html#about), [
       Varnish](https://www.varnish-cache.org/about), and
