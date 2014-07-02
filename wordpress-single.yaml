@@ -16,6 +16,17 @@ parameter_groups:
   - domain
   - username
 
+- label: rax-dev-params
+  # These are parameters that will not be displayed in the portal. The purpose
+  # of these parameters are for users who are developing or testing newer or
+  # different setups. If any of these parameters are changed, there is a good
+  # chance this stack will fail to properly deploy.
+  parameters:
+  - kitchen
+  - chef_version
+  - version
+  - prefix
+
 parameters:
 
   # Server settings
@@ -33,8 +44,10 @@ parameters:
         Must begin with a letter and contain only alphanumeric characters.
 
   image:
-    label: Server Image
-    description: Operating system to use for your server.
+    label: Operating System
+    description: |
+      Required: Server image used for all servers that are created as a part of
+      this deployment.
     type: string
     default: Ubuntu 12.04 LTS (Precise Pangolin)
     constraints:
@@ -45,8 +58,8 @@ parameters:
   flavor:
     label: Server Size
     description: |
-      Rackspace Cloud Server flavor to use. The size is based on the amount of
-      RAM for the provisioned server.
+      Required: Rackspace Cloud Server flavor to use. The size is based on the
+      amount of RAM for the provisioned server.
     type: string
     default: 4 GB Performance
     constraints:
@@ -346,16 +359,17 @@ resources:
 
 outputs:
   private_key:
+    description: SSH Private Key
     value: { get_attr: [ssh_key, private_key] }
 
   server_ip:
+    description: Server IP
     value: { get_attr: [wordpress_server, accessIPv4] }
 
   wordpress_user:
+    description: WordPress User
     value: { get_param: username }
 
   wordpress_password:
+    description: WordPress Password
     value: { get_attr: [database_password, value] }
-
-  mysql_root_password:
-    value: { get_attr: [mysql_root_password, value] }
