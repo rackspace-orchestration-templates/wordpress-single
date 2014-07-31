@@ -9,7 +9,11 @@ Cloud](http://www.rackspace.com/cloud/). This template is leveraging
 
 Requirements
 ============
-* A Heat provider that supports the Rackspace `OS::Heat::ChefSolo` plugin.
+* A Heat provider that supports the following:
+  * OS::Nova::KeyPair
+  * Rackspace::Cloud::Server
+  * OS::Heat::RandomString
+  * OS::Heat::ChefSolo
 * An OpenStack username, password, and tenant id.
 * [python-heatclient](https://github.com/openstack/python-heatclient)
 `>= v0.2.8`:
@@ -51,17 +55,22 @@ Parameters
 Parameters can be replaced with your own values when standing up a stack. Use
 the `-P` flag to specify a custom parameter.
 
-* `server_hostname`: Sets the hostname of the server. (Default: WordPress)
-* `image`: Operating system to install (Default: Ubuntu 12.04 LTS (Precise
-  Pangolin))
-* `flavor`: Cloud server size to use. (Default: 4 GB Performance)
-* `domain`: Domain to be used for the WordPress installation  (Default:
-  example.com)
-* `version`: Version of WordPress to install (Default: 3.9.1)
-* `prefix`: The prefix to use for WordPress database tables (Default: wp_)
-* `database_name`: Name to use for the WordPress database (Default: wordpress)
-* `username`: Username for database, system, and WordPress logins (Default:
+* `server_hostname`: Hostname to use for the server that's built. (Default:
+  WordPress)
+* `username`: Username for system, database, and WordPress logins. (Default:
   wp_user)
+* `domain`: Domain to be used with WordPress site (Default: example.com)
+* `image`: Required: Server image used for all servers that are created as a
+  part of this deployment. (Default: Ubuntu 12.04 LTS (Precise Pangolin))
+* `prefix`: Prefix to use for WordPress database tables (Default: wp_)
+* `version`: Version of WordPress to install (Default: 3.9.1)
+* `database_name`: WordPress database name (Default: wordpress)
+* `flavor`: Required: Rackspace Cloud Server flavor to use. The size is based
+  on the amount of RAM for the provisioned server. (Default: 4 GB Performance)
+* `chef_version`: Version of chef client to use (Default: 11.12.8)
+* `kitchen`: URL for a git repo containing required cookbooks (Default:
+  https://github.com/rackspace-orchestration-templates/wordpress-multi.git)
+
 
 Outputs
 =======
