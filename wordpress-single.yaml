@@ -168,7 +168,7 @@ parameters:
     label: Chef Version
     description: Version of chef client to use
     type: string
-    default: 11.12.4
+    default: 11.12.8
 
 resources:
   # Random password generation
@@ -375,3 +375,7 @@ outputs:
   wordpress_password:
     description: WordPress Password
     value: { get_attr: [database_password, value] }
+
+  mysql_root_password:
+    description: MySQL Root Password
+    value: { get_attr: [mysql_root_password, value] }
