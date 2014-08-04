@@ -162,7 +162,7 @@ parameters:
     label: Kitchen URL
     description: "URL for a git repo containing required cookbooks"
     type: string
-    default: https://github.com/rackspace-orchestration-templates/wordpress-multi.git
+    default: https://github.com/rackspace-orchestration-templates/wordpress-single.git
 
   chef_version:
     label: Chef Version
