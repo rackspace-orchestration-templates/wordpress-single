@@ -18,7 +18,7 @@
 #
 
 default[:rax][:memcache][:server] = '127.0.0.1'
-default[:rax][:memcache][:port] = 11_211
+default[:rax][:memcache][:port] = node['memcached']['port']
 default[:rax][:memcache][:persistent] = 1
 default[:rax][:memcache][:weight] = 1
 default[:rax][:memcache][:timeout] = 1
