@@ -15,7 +15,6 @@ cookbook 'wordpress',
   :git => 'https://github.com/opscode-cookbooks/wordpress'
 cookbook 'php',
   :git => 'https://github.com/opscode-cookbooks/php'
-
 cookbook 'sysctl',
   :git => 'https://github.com/spheromak/sysctl-cookbook',
   :ref => '796678a25e1c83f7f5810c1b507acaedd48403c9'
@@ -26,8 +25,7 @@ cookbook 'monit',
   :git => 'https://github.com/apsoto/monit'
 cookbook 'hollandbackup',
   :git => 'https://github.com/brint/hollandbackup'
-cookbook 'varnish',
-  :git => 'https://github.com/opscode-cookbooks/varnish'
+cookbook 'varnish'
 cookbook 'lsyncd',
   :git => 'https://github.com/dgivens/chef-lsyncd/'
 cookbook 'rax-wordpress',
