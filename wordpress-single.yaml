@@ -328,6 +328,8 @@ resources:
           lsyncd:
             ssh:
               private_key: { get_attr: [sync_key, private_key] }
+          packages:
+            - php5-imagick
           varnish:
             master_backend: "localhost"
           wordpress:
@@ -350,6 +352,7 @@ resources:
                    "recipe[rax-wordpress::x509]",
                    "recipe[memcached]",
                    "recipe[php]",
+                   "recipe[rax-install-packages]",
                    "recipe[wordpress]",
                    "recipe[rax-wordpress::wp-setup]",
                    "recipe[rax-wordpress::user]",
