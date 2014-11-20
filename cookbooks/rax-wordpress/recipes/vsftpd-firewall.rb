@@ -23,8 +23,8 @@
 listen_ports = [ 21 ]
 
 # Port ranges to allow through for services like pasv ftp
-listen_ranges = [[node['vsftpd']['pasv_min_port'],
-                  node['vsftpd']['pasv_max_port']]]
+listen_ranges = [[node['vsftpd']['config']['pasv_min_port'],
+                  node['vsftpd']['config']['pasv_max_port']]]
 
 # Handle single ports first
 listen_ports.each do |listen_port|
@@ -53,7 +53,7 @@ listen_ranges.each do |listen_range|
   case node['platform_family']
   when 'debian'
     firewall_rule "Firewall range, tcp/#{listen_range.to_s}" do
-      port_range (listen_range.first .. listen_range.last)
+      port_range (listen_range.first.to_i .. listen_range.last.to_i)
       protocol   :tcp
       direction  :in
       action     :allow
