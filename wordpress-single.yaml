@@ -169,7 +169,7 @@ parameters:
     label: Chef Version
     description: Version of chef client to use
     type: string
-    default: 11.16.2
+    default: 11.16.4
 
 resources:
   # Random password generation
