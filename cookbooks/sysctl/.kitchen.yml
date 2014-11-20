@@ -1,0 +1,23 @@
+---
+driver:
+  name: docker
+  require_chef_omnibus: true
+
+platforms:
+- name: centos-6.4
+- name: ubuntu-12.04
+
+suites:
+- name: default
+  run_list:
+    - recipe[sysctl::attribute_driver]
+  attributes: {
+    sysctl: {
+      values: {
+        "net.core.rmem_default": "262144",
+        "net.core.wmem_default": "262144",
+        "fs.file-max": 1000000,
+        "net.ipv4.tcp_fin_timeout": 30
+      }
+    }
+  }

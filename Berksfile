@@ -16,11 +16,9 @@ cookbook 'wordpress',
 cookbook 'php',
   :git => 'https://github.com/opscode-cookbooks/php'
 cookbook 'sysctl',
-  :git => 'https://github.com/spheromak/sysctl-cookbook',
-  :ref => '796678a25e1c83f7f5810c1b507acaedd48403c9'
+  :git => 'https://github.com/spheromak/sysctl-cookbook'
 cookbook 'vsftpd',
-  :git => 'https://github.com/optiflows-cookbooks/vsftpd',
-  :ref => '813744f1d184bdb79c68737a12ed5221825b925c'
+  :git => 'https://github.com/optiflows-cookbooks/vsftpd'
 cookbook 'monit',
   :git => 'https://github.com/apsoto/monit'
 cookbook 'hollandbackup',
@@ -33,5 +31,4 @@ cookbook 'rax-wordpress',
 cookbook 'rax-mysql-tunables',
   :git => 'https://github.com/JasonBoyles/rax-mysql-tunables'
 cookbook 'cron',
-  :git => 'https://github.com/opscode-cookbooks/cron',
-  :ref => '8007fc9ef6083e04554d729b4ffaef4e7ca81d7a'
+  :git => 'https://github.com/opscode-cookbooks/cron'

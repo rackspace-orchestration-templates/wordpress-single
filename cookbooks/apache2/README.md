@@ -1,7 +1,7 @@
 apache2 Cookbook
 ================
-[![Build Status](https://secure.travis-ci.org/onehealth-cookbooks/apache2.png?branch=master)](http://travis-ci.org/onehealth-cookbooks/apache2)
-[![Gitter Chat](https://badges.gitter.im/onehealth-cookbooks/apache2.png)](https://gitter.im/onehealth-cookbooks/apache2)
+[![Build Status](https://secure.travis-ci.org/viverae-cookbooks/apache2.png?branch=master)](http://travis-ci.org/viverae-cookbooks/apache2)
+[![Gitter Chat](https://badges.gitter.im/viverae-cookbooks/apache2.png)](https://gitter.im/viverae-cookbooks/apache2)
 
 This cookbook provides a complete Debian/Ubuntu style Apache HTTPD
 configuration. Non-Debian based distributions such as Red Hat/CentOS,
@@ -127,7 +127,7 @@ Tests
 =====
 
 This cookbook in the
-[source repository](https://github.com/onehealth-cookbooks/apache2)
+[source repository](https://github.com/viverae-cookbooks/apache2)
 contains chefspec, serverspec and cucumber tests. This is an initial proof of
 concept that will be fleshed out with more supporting infrastructure
 at a future time.
@@ -167,6 +167,7 @@ the top of the file.
 * `node['apache']['lib_dir']` - Location for shared libraries
 * `node['apache']['default_site_enabled']` - Default site enabled. Default is false.
 * `node['apache']['ext_status']` - if true, enables ExtendedStatus for `mod_status`
+* `node['apache']['locale'] - Locale to set in sysconfig or envvars and used for subprocesses and modules (like mod_dav and mod_wsgi). On debian systems Uses system-local if set to 'system', defaults to 'C'.
 
 General settings
 ----------------
@@ -246,12 +247,33 @@ they're logistically unrelated to the others, being specific to the
 mod\_ssl attributes
 -------------------
 
-* `node['apache']['mod_ssl']['cipher_suite']` - sets the
-  SSLCiphersuite value to the specified string. The default is
-  considered "sane" but you may need to change it for your local
-  security policy, e.g. if you have PCI-DSS requirements. Additional
+For general information on this attributes see http://httpd.apache.org/docs/current/mod/mod_ssl.html
+
+* `node['apache']['mod_ssl']['cipher_suite']` - sets the SSLCiphersuite value to the specified string. The default is
+  considered "sane" but you may need to change it for your local security policy, e.g. if you have PCI-DSS requirements. Additional
   commentary on the
-  [original pull request](https://github.com/onehealth-cookbooks/apache2/pull/15#commitcomment-1605406).
+  [original pull request](https://github.com/viverae-cookbooks/apache2/pull/15#commitcomment-1605406).
+* `node['apache']['mod_ssl']['honor_cipher_order']` - Option to prefer the server's cipher preference order. Default 'On'.
+* `node['apache']['mod_ssl']['insecure_renegotiation']` - Option to enable support for insecure renegotiation. Default 'Off'.
+* `node['apache']['mod_ssl']['strict_sni_vhost_check']` - Whether to allow non-SNI clients to access a name-based virtual host. Default 'Off'.
+* `node['apache']['mod_ssl']['session_cache']` - Configures the OCSP stapling cache. Default `shmcb:/var/run/apache2/ssl_scache`
+* `node['apache']['mod_ssl']['session_cache_timeout']` - Number of seconds before an SSL session expires in the Session Cache. Default 300.
+* `node['apache']['mod_ssl']['compression']` - 	Enable compression on the SSL level. Default 'Off'.
+* `node['apache']['mod_ssl']['use_stapling']` - Enable stapling of OCSP responses in the TLS handshake. Default 'Off'.
+* `node['apache']['mod_ssl']['stapling_responder_timeout']` - 	Timeout for OCSP stapling queries. Default 5
+* `node['apache']['mod_ssl']['stapling_return_responder_errors']` - Pass stapling related OCSP errors on to client. Default 'Off'
+* `node['apache']['mod_ssl']['stapling_cache']` - Configures the OCSP stapling cache. Default `shmcb:/var/run/ocsp(128000)`
+* `node['apache']['mod_ssl']['pass_phrase_dialog']` - Configures SSLPassPhraseDialog. Default `builtin`
+* `node['apache']['mod_ssl']['mutex']` - Configures SSLMutex. Default `file:/var/run/apache2/ssl_mutex`
+* `node['apache']['mod_ssl']['directives']` - Hash for add any custom directive.
+
+For more information on these directives and how to best secure your site see
+- https://bettercrypto.org/
+- https://wiki.mozilla.org/Security/Server_Side_TLS
+- https://www.insecure.ws/linux/apache_ssl.html
+- https://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
+- https://istlsfastyet.com/
+- https://www.ssllabs.com/projects/best-practices/
 
 Recipes
 =======
@@ -371,6 +393,8 @@ ArchLinux.
 On Red Hat family distributions including Fedora, the php.conf that
 comes with the package is removed. On RHEL platforms less than v6, the
 `php53` package is used.
+
+* `node['apache']['mod_php5']['install_method']` - default `package` can be overridden to avoid package installs.
 
 mod\_ssl
 --------
@@ -693,13 +717,14 @@ License and Authors
 * Author:: Sean OMeara <someara@opscode.com>
 * Author:: Seth Chisamore <schisamo@opscode.com>
 * Author:: Gilles Devaux <gilles@peerpong.com>
-* Author:: Sander van Zoest <svanzoest@onehealth.com>
-* Author:: Taylor Price <tprice@onehealth.com>
+* Author:: Sander van Zoest <sander.vanzoest@viverae.com>
+* Author:: Taylor Price <tayworm@gmail.com>
 
 * Copyright:: 2009-2012, Opscode, Inc
 * Copyright:: 2011, Atriso
 * Copyright:: 2011, CustomInk, LLC.
 * Copyright:: 2013-2014, OneHealth Solutions, Inc.
+* Copyright:: 2014, Viverae, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

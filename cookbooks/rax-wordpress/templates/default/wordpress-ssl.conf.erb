@@ -23,9 +23,10 @@
         downgrade-1.0 force-response-1.0
     BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
 
-    ProxyPreserveHost On
-    ProxyPass / http://127.0.0.1/
-    RequestHeader set X-Proxy-Proto "HTTPS"
+    <Location />
+        Order allow,deny
+        Allow from all
+    </Location>
 
     # Include /var/www/vhosts/<%= @params[:server_name] %>/conf/*_ssl.conf
 

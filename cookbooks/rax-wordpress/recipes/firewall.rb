@@ -21,7 +21,7 @@
 # Single ports to allow through
 listen_ports = [node['varnish']['listen_port']]
 listen_ports.push(25)
-listen_ports.push(443) if node['rax']['wordpress']['use_ssl']
+listen_ports.push(443) if node['rax']['apache']['use_ssl']
 
 # Handle single ports first
 listen_ports.each do |listen_port|

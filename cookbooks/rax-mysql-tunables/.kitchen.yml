@@ -1,0 +1,23 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_solo
+
+platforms:
+  - name: ubuntu-12.04
+    run_list:
+      - recipe[apt::default]
+      - recipe[build-essential::default]
+
+suites:
+  - name: default
+    run_list:
+      - recipe[mysql::server]
+      - recipe[rax-mysql-tunables::default]
+    attributes:
+      rax_mysql_tunables:
+        config_options:
+          mysqld:
+            innodb-buffer-pool-size: 128000000

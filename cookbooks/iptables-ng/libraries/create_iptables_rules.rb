@@ -40,7 +40,7 @@ module Iptables
         next if table == 'nat' && ip_version == 6
 
         # Skip deactivated tables
-        next if not node['iptables-ng']['enabled_tables'].include?(table)
+        next unless node['iptables-ng']['enabled_tables'].include?(table)
 
         # Create hashes unless they already exist, and add the rule
         rules[table] ||= {}
@@ -53,14 +53,12 @@ module Iptables
         iptables_restore << "*#{table}\n"
 
         # Get default policies and rules for this chain
-        default_policies = chains.reduce({}) do |new_chain, rule|
-          new_chain[rule[0]] = rule[1].select { |k, v| k == 'default' }
-          new_chain
+        default_policies = chains.each_with_object({}) do |rule, new_chain|
+          new_chain[rule[0]] = rule[1].select { |k, _| k == 'default' }
         end
 
-        all_chain_rules  = chains.reduce({}) do |new_chain, rule|
-          new_chain[rule[0]] = rule[1].reject { |k, v| k == 'default' }
-          new_chain
+        all_chain_rules  = chains.each_with_object({}) do |rule, new_chain|
+          new_chain[rule[0]] = rule[1].reject { |k, _| k == 'default' }
         end
 
         # Apply default policies first
@@ -69,7 +67,7 @@ module Iptables
         end
 
         # Apply rules for this chain, but sort before adding
-        all_chain_rules.each do |chain, chain_rules|
+        all_chain_rules.each do |_chain, chain_rules|
           chain_rules.sort.each { |r| iptables_restore << "#{r.last.chomp}\n" }
         end
 

@@ -2,10 +2,6 @@
 # Cookbook Name:: postgresql
 # Recipe:: server
 #
-# Author:: Joshua Timberman (<joshua@opscode.com>)
-# Author:: Lamont Granquist (<lamont@opscode.com>)
-# Copyright 2009-2011, Opscode, Inc.
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -60,7 +56,7 @@ end
 # Use the postgresql-setup script instead.
 
 unless platform_family?("fedora") and node['platform_version'].to_i >= 16
-  
+
   directory "/etc/sysconfig/pgsql" do
     mode "0644"
     recursive true
@@ -88,6 +84,8 @@ else !platform_family?("suse")
   end
 
 end
+
+include_recipe "postgresql::server_conf"
 
 service "postgresql" do
   service_name svc_name

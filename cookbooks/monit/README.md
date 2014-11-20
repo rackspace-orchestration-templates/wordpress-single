@@ -10,6 +10,10 @@ management tool.
  * Rebase onto master if needed
  * Add Chefspec test
  * Make sure foodcritic is happy
+ * Make sure your PR is marked as "safe to merge"
+
+# Changelog #
+[Changelog](https://github.com/apsoto/monit/blob/master/Changelog)
 
 # How to add to your cookbook repository #
 
@@ -33,19 +37,4 @@ For more info, check out the [Pro Git](http://progit.org/book/ch6-6.html) book.
     $ git submodule add git://github.com/apsoto/monit.git cookbooks/monit
 
 
-History
-=======
-version 0.7.1
--------------
- * add name to metadata.rb.  Thanks Chulki Lee (https://github.com/chulkilee)
-
-version 0.7
------------
- * create /etc/monit/conf.d.  Thanks Karel Minarik (https://github.com/karmi)
-
-version 0.6
------------
- * Released to github
- * Defaults no alert on ACTION event.
-   When you manually stop/start a service, alerting me about what I just did isn't useful.
 

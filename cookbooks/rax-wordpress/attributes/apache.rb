@@ -32,3 +32,6 @@ default['rax']['apache']['ssl']['key'] = nil
 default['rax']['apache']['ssl']['cacert'] = nil
 
 default['rax']['apache']['domain'] = nil
+
+# If no key/cert pair is provided, this will create a self signed keypair
+default['rax']['apache']['use_ssl'] = false

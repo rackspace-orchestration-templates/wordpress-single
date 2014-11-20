@@ -24,14 +24,18 @@ default['iptables-ng']['enabled_ip_versions'] = [4, 6]
 # Which tables to manage:
 # When using containered setup (OpenVZ, Docker, LXC) it might might be
 # necessary to remove the "nat" and "raw" tables.
-default['iptables-ng']['enabled_tables'] = %w{nat filter mangle raw}
+default['iptables-ng']['enabled_tables'] = %w(nat filter mangle raw)
 
 # Packages to install
 default['iptables-ng']['packages'] = case node['platform_family']
 when 'debian'
   %w(iptables iptables-persistent)
 when 'rhel'
-  %w(iptables iptables-ipv6)
+  if node['platform_version'].to_f >= 7.0
+    %w(iptables iptables-services)
+  else
+    %w(iptables iptables-ipv6)
+  end
 else
   %w(iptables)
 end
@@ -54,8 +58,13 @@ when 'debian'
   end
 
 when 'ubuntu'
-  default['iptables-ng']['service_ipv4'] = 'iptables-persistent'
-  default['iptables-ng']['service_ipv6'] = 'iptables-persistent'
+  if node['platform_version'].to_f >= 14.10
+    default['iptables-ng']['service_ipv4'] = 'netfilter-persistent'
+    default['iptables-ng']['service_ipv6'] = 'netfilter-persistent'
+  else
+    default['iptables-ng']['service_ipv4'] = 'iptables-persistent'
+    default['iptables-ng']['service_ipv6'] = 'iptables-persistent'
+  end
   default['iptables-ng']['script_ipv4'] = '/etc/iptables/rules.v4'
   default['iptables-ng']['script_ipv6'] = '/etc/iptables/rules.v6'
 

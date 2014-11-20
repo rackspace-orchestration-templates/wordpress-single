@@ -34,3 +34,11 @@ node.set['apache']['prefork']['maxspareservers'] = maxspareservers.to_i
 node.set['apache']['prefork']['serverlimit'] = maxclients.to_i
 node.set['apache']['prefork']['maxclients'] = maxclients.to_i
 node.set['apache']['prefork']['maxrequestsperchild'] = 1_000
+
+if WordPress.use_ssl(node['rax']['apache']['ssl']['key'],
+                     node['rax']['apache']['ssl']['cert'],
+                     node['rax']['apache']['use_ssl'])
+  unless node['apache']['default_modules'].include?('ssl')
+    node.set['apache']['default_modules'] = node['apache']['default_modules'] + ['ssl']
+  end
+end
