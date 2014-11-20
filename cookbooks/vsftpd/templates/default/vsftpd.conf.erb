@@ -1,17 +1,11 @@
-<% if @config -%>
-<%   @config.each do |key, value| -%>
-<%     next if value.nil? -%>
-<%     begin next if value.empty? rescue NoMethodError end -%>
-<%= key %>=<%=
-       case value
-       when Array
-         value.join(",")
-       when TrueClass
-         'YES'
-       when FalseClass
-         'NO'
-       else
-         value
-       end %>
-<%   end -%>
-<% end -%>
+# Configuration file created by Chef
+# Based on default configuration shipped by CentOS 6
+# Changes to this file will be overwritten after the
+# next chef-client run.
+#
+
+<% node['vsftpd']['config'].each do |option,value| %>
+  <% unless value.nil? or value.empty? %>
+<%= option %>=<%= value %>
+  <% end %>
+<% end %>

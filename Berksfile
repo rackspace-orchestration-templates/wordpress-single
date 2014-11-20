@@ -18,7 +18,7 @@ cookbook 'php',
 cookbook 'sysctl',
   :git => 'https://github.com/spheromak/sysctl-cookbook'
 cookbook 'vsftpd',
-  :git => 'https://github.com/optiflows-cookbooks/vsftpd'
+  :git => 'https://github.com/TheSerapher/chef-vsftpd'
 cookbook 'monit',
   :git => 'https://github.com/apsoto/monit'
 cookbook 'hollandbackup',

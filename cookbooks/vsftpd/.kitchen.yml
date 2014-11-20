@@ -1,20 +1,26 @@
 ---
-driver_plugin: vagrant
-driver_config:
-  require_chef_omnibus: true
-  customize:
-    memory: 512
-    cpus: 4
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_zero
 
 platforms:
-- name: ubuntu-14.04
-  run_list:
-  - recipe[apt]
-- name: ubuntu-12.04
-  run_list:
-  - recipe[apt]
+  - name: centos-6.5
+  - name: centos-5.10
+  - name: ubuntu-12.04
+  - name: ubuntu-14.04
+  - name: debian-7.4
+  - name: debian-6.0.8
 
 suites:
 - name: default
   run_list:
-  - recipe[vsftpd]
+    - recipe[up2date]
+    - recipe[vsftpd]
+  attributes:
+    vsftpd:
+      config:
+        listen_address: 127.0.0.1
+      allowed:
+        - vagrant

@@ -1,52 +1,139 @@
-# DESCRIPTION
+Description [ ![Codeship Status for TheSerapher/chef-vsftpd](https://www.codeship.io/projects/3e72d8b0-67e3-0130-0fd6-12313d093ed4/status?branch=master)](https://www.codeship.io/projects/1777)
+===========
 
-Very Basic installation and configuration of vsftpd to support Secure (SSL) SFTP.
+A vsftpd Chef cookbook to install and configure a standard vsftpd
+installation.
 
-Uses pretty close to standard vsftpd.conf. Mainly turns on ssl and adds require_ssl_reuse=No.
-Will use ssl certificates you specify in attributes and put into the files/default directory or files that are already installed on target server.
+Requirements
+============
+
+## Platform:
+
+* CentOS
+* RHEL
+* Debian
+* Ubuntu
+
+## Cookbooks:
+
+*No other cookbooks required*
+
+Attributes
+==========
+
+<table>
+  <tr>
+    <td>Attribute</td>
+    <td>Description</td>
+    <td>Default</td>
+  </tr>
+  <tr>
+    <td><code>node['vsftpd']['enabled']</code></td>
+    <td>Enable and start vsftpd after installation</td>
+    <td><code>true</code></td>
+  </tr>
+  <tr>
+    <td><code>node['vsftpd']['etcdir']</code></td>
+    <td>Where to store additional configuration files</td>
+    <td><code>/etc/vsftpd</code></td>
+  </tr>
+  <tr>
+    <td><code>node['vsftpd']['allowed']</code></td>
+    <td>Array of local users that are allowd to connect via FTP</td>
+    <td><code>[ ]</code></td>
+  </tr>
+  <tr>
+    <td><code>node['vsftpd']['chroot']</code></td>
+    <td>Array of users that will not be chroot'ed</td>
+    <td><code>[ ]</code></td>
+  </tr>
+  <tr>
+    <td><code>node['vsftpd']['config']</code></td>
+    <td>Configuration array with key/value pairs.</td>
+    <td>See <a href="https://security.appspot.com/vsftpd/vsftpd_conf.html">Manpage</a> for details</td>
+  </tr>
+</table>
+
+Recipes
+=======
+
+## vsftpd::default
+
+Installs/configures vsftpd, includes some sub-tasks via `include_recipe`. 
+
+Known Issue
+===========
+
+When using *Ubuntu 12.04* or *Debian Wheezy* you will have issues with
+this cookbook and running `chroot_local_users=YES` in the configuration.
+
+There are some workarounds to overcome this problem:
+
+* [Blake's Coding Blog](http://blakecode.blogspot.de/2012/08/vsftpd-refusing-to-run-with-writable.html)
+* [Ubuntu 12.04 Fix](http://blog.thefrontiergroup.com.au/2012/10/making-vsftpd-with-chrooted-users-work-again/)
+
+The basic gist of these articles:
+
+* revoke write permissions on the users home 
+* setup a different chroot environment via `passwd_chroot_enable=YES`
+* install a patched version of the vsftpd 2.x branch and set
+  `allow_writeable_chroot=YES` to ignore this error
+* use vsftpd 3.x and set `allow_writeable_chroot=YES` to ignore this error
 
 
-# REQUIREMENTS
+Testing
+=======
 
-Only tested on Ubuntu 10.04 and the vsftpd that comes from the standard apt sources at the time this cookbook was created. No attempt has been made to support other target platforms or versions of vsftpd.
+The cookbook comes with some testing facilities allowing you to iterate quickly
+on cookbook changes.
 
-# ATTRIBUTES
+## Rake
 
-* vsftod[:chroot_local_user] - If set to 'YES', then the chroot_list_file (contents of vsftpd[:chroot_users]) will specify list of local users to NOT chroot their home directories. If set to "NO" the users in chroot_list_file will have their home directories chroot'd. Default: "YES"
+You can execute the tests with [Rake](http://rake.rubyforge.org). The `Rakefile`
+provides the following tasks:
 
-* vsftpd[:chroot_users] - Optional list of local usernames to be put in the chroot_list_file (/etc/vsftpd.chroot_list) file. Default: empty
+    $ rake -T
+    rake chefspec    # Run ChefSpec examples
+    rake foodcritic  # Run Foodcritic lint checks
+    rake knife       # Run knife cookbook test
+    rake rubocop     # Run rubocop checks
+    rake test        # Run all tests
 
-* vsftpd[:ssl_cert_path] - The pathname of the directory that the ssl cert file should live. Default: /etc/ssl/certs
+## Bundler
 
-* vsftpd[:ssl_private_key_path] - The pathname of the directory that the ssl private key file should live. Default: /etc/ssl/private
+If you prefer to let [Bundler](http://gembundler.com) install all required gems
+(you should), run the tests this way:
 
-* vsftpd[:ssl_certs_basename] -Base name of the ssl cert PEM file and ssl private key filenames. Default: 'ftp.example.com' You will want it to be the FQDN of your host that you used to create the certs
+    $ # I like to install them in a parent folder so all cookbooks can use it
+    $ bundle install --path=../vendor/bundle
+    $ bundle exec rake test
 
-* vsftpd[:use_ssl_certs_from_cookbook] - If set, you must have the ssl public and private cert files in the cookbook's files directory. Default: true
+## Berkshelf
 
-# USAGE
+[Berkshelf](http://berkshelf.com) is used to set up the cookbook and its
+dependencies (as defined in `Berksfile`) prior to testing with Rake and Vagrant.
 
-## SSL Certificates for secure ftp
+## Kitchen
 
-You will need to have SSL public certificate end up in the directory as specified by vsftpd[:ssl_cert_path] with the certificate basename specified by vsftpd[:ssl_certs_basename] and the suffix of .pem (defaults to /etc/ssl/certs/ftp.example.com.pem)
+This cookbook is using [test-kitchen](https://github.com/opscode/test-kitchen) to create machines. You
+can review the boxes by using:
 
-The SSL private key must end up in the directory as specified by vsftpd[:ssl_private_key_path] with the certificate basename specified by vsftpd[:ssl_certs_basename] and the suffix of .key (defaults to /etc/ssl/private/ftp.example.com.key)
+    $ bundle exec kitchen list
 
-You can use an SSL certificate public/private files that are not being managed by this cookbook by updating the vsftpd ssl attributes to match the paths/filenames that are on your server. In this case you must set vsftpd[:use_ssl_certs_from_cookbook] to false
+To run the full kitchen suite included in this cookbook simply execute:
 
-Or you can put the public/private files with the basename and suffix described above in the cookbook's files/default directory. You can use the chef-repo's rake ssl_cert command to create the files and then move them into the cookbook's files/default directory with the proper names. vsftpd[:use_ssl_certs_from_cookbook] must be true (default)
+    $ bundle exec kitchen test
+    
+You can also verify/converge/test any specific machine from the previous list output:
 
-You should not use the example ftp.example.com.{pem,key} that are in files/default. They are there just for an example and testing.
+    $ bundle exec kitchen verify <instance>
 
-## Extra Configuration
+License and Author
+==================
 
-You can tweak the templates/default/vsftpd.conf to configure other aspects of vsftpd. Most of them are the default.
+Author:: Sebastian Grewe (<sebastian.grewe@gmail.com>)
 
-# LICENSE and AUTHOR:
-
-Author:: Robert J. Berger (rberger+maintainer@ibd.com)
-
-Copyright:: 2010, Robert J. Berger
+Copyright:: 2013, Sebastian Grewe 
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

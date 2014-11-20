@@ -1,51 +1,60 @@
-#!/usr/bin/env rake
+# encoding: utf-8
 
-# Style tests. Rubocop and Foodcritic
-namespace :style do
-  begin
-    require 'rubocop/rake_task'
-    desc 'Run Ruby style checks'
-    RuboCop::RakeTask.new(:ruby)
-  rescue LoadError
-    puts '>>>>> Rubocop gem not loaded, omitting tasks' unless ENV['CI']
-  end
+require 'chef/cookbook/metadata'
 
-  begin
-    require 'foodcritic'
+def cookbook_metadata
+  metadata = Chef::Cookbook::Metadata.new
+  metadata.from_file 'metadata.rb'
+  metadata
+end
 
-    desc 'Run Chef style checks'
-    FoodCritic::Rake::LintTask.new(:chef) do |t|
-      t.options = {
-        fail_tags: ['any']
-      }
-    end
-  rescue LoadError
-    puts '>>>>> foodcritic gem not loaded, omitting tasks' unless ENV['CI']
+def cookbook_name
+  name = cookbook_metadata.name
+  if name.nil? || name.empty?
+    File.basename(File.dirname(__FILE__))
+  else
+    name
   end
 end
 
-desc 'Run all style checks'
-task style: ['style:chef', 'style:ruby']
+VAGRANT = ENV['VAGRANT'] || false
+COOKBOOK_NAME = ENV['COOKBOOK_NAME'] || cookbook_name
+COOKBOOKS_PATH = ENV['COOKBOOKS_PATH'] || 'cookbooks'
 
-# Integration tests. Kitchen.ci
-namespace :integration do
-  begin
-    require 'kitchen/rake_tasks'
-
-    desc 'Run kitchen integration tests'
-    Kitchen::RakeTasks.new
-  rescue LoadError
-    puts '>>>>> Kitchen gem not loaded, omitting tasks' unless ENV['CI']
-  end
+desc 'Install cookbooks from Berksfile'
+task :setup_cookbooks do
+  rm_rf COOKBOOKS_PATH
+  sh 'berks', 'vendor', COOKBOOKS_PATH
 end
 
-namespace :maintain do
-  require 'stove/rake_task'
-  Stove::RakeTask.new
+desc 'Run knife cookbook test'
+task 'knife' => 'setup_cookbooks' do
+  sh 'knife', 'cookbook', 'test', COOKBOOK_NAME, '--config', '.knife.rb',
+     '--cookbook-path', COOKBOOKS_PATH
 end
 
-desc 'Run all tests on Travis'
-task travis: ['style']
+desc 'Run Foodcritic lint checks'
+task 'foodcritic' do
+  sh 'foodcritic', '--epic-fail', 'any',
+     '-X', 'cookbooks', '.'
+end
 
-# Default
-task default: ['style', 'integration:kitchen:all']
+desc 'Run ChefSpec examples'
+task 'chefspec' => 'setup_cookbooks' do
+  sh 'rspec', '--color', '--format', 'documentation',
+     File.join(COOKBOOKS_PATH, COOKBOOK_NAME, 'spec')
+end
+
+desc 'Run Rubocop'
+task :rubocop do
+  sh 'rubocop', '-fs'
+end
+
+desc 'Run all tests'
+task 'test' => %w( knife foodcritic chefspec rubocop )
+
+# Default, test everything
+task 'default' => 'test'
+
+# Cleanup testing cookbooks
+at_exit { rm_rf COOKBOOKS_PATH }

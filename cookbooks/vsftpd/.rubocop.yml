@@ -1,28 +1,15 @@
 AllCops:
-  Include:
-    - '**/Berksfile'
-    - '**/Gemfile'
-    - '**/Rakefile'
-    - '**/Thorfile'
-    - '**/Guardfile'
   Exclude:
-    - 'vendor/**/*'
+    - bin/**
+    - vendor/**
+    - attributes/**
+    - Cheffile
+    - Berksfile
+    - metadata.rb
+    - cookbooks/**/*
+    - knife.rb
 
-ClassLength:
-  Enabled: false
-Documentation:
-  Enabled: false
-Encoding:
-  Enabled: false
-HashSyntax:
-  Enabled: false
 LineLength:
-  Enabled: false
+  Max: 100
 MethodLength:
-  Enabled: false
-SignalException:
-  Enabled: false
-TrailingComma:
-  Enabled: false
-WordArray:
-  Enabled: false
+  Max: 30
