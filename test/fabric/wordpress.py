@@ -1,3 +1,4 @@
+import os
 import re
 from fabric.api import env, run, hide, task
 from envassert import detect, file, group, package, port, process, service, \
@@ -52,5 +53,10 @@ def check():
 @task
 def artifacts():
     env.platform_family = detect.detect()
-    logs = run("/bin/bash -c 'echo /tmp/heat_chef/*-*-*-*-*/{bootstrap,clone_kitchen,run_chef}.log'").split()
+    logbasenames = ["bootstrap", "clone_kitchen", "run_chef"]
+    logdirs = run("/bin/bash -c 'echo /tmp/heat_chef/*-*-*-*-*'").split()
+    logs = []
+    for logdir in logdirs:
+        for basename in logbasenames:
+            logs.append(os.path.join(logdir, basename + ".log"))
     get_artifacts(logs)
