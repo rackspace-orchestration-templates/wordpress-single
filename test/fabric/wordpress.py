@@ -2,7 +2,7 @@ import re
 from fabric.api import env, run, hide, task
 from envassert import detect, file, group, package, port, process, service, \
     user
-
+from hot.utils.test import get_artifacts, http_check, local_http_check
 
 def wordpress_is_responding():
     with hide('running', 'stdout'):
@@ -47,3 +47,10 @@ def check():
     assert service.is_enabled('vsftpd'), 'vsftpd service not enabled'
 
     assert wordpress_is_responding(), 'Wordpress did not respond as expected.'
+
+
+@task
+def artifacts():
+    env.platform_family = detect.detect()
+    logs = run("/bin/bash -c 'echo /tmp/heat_chef/*-*-*-*-*/{bootstrap,clone_kitchen,run_chef}.log'").split()
+    get_artifacts(logs)
