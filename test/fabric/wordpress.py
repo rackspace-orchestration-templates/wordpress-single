@@ -1,24 +1,14 @@
-import os
-import re
-from fabric.api import env, run, hide, task
-from envassert import detect, file, group, package, port, process, service, \
-    user
-from hot.utils.test import get_artifacts, http_check, local_http_check
-
-def wordpress_is_responding():
-    with hide('running', 'stdout'):
-        homepage = run("wget --quiet --output-document - --header='Host: example.com' http://localhost/")
-        if re.search('Powered by WordPress', homepage):
-            return True
-        else:
-            return False
+from fabric.api import env, task
+from envassert import detect, file, port, process, service, user
+from hot.utils.test import get_artifacts, http_check
 
 
 @task
 def check():
     env.platform_family = detect.detect()
 
-    assert file.exists('/var/www/vhosts/example.com/xmlrpc.php'), 'xmlrpc.php did not exist'
+    assert file.exists('/var/www/vhosts/example.com/xmlrpc.php'),\
+        'xmlrpc.php did not exist'
 
     assert port.is_listening(21), 'port 21/vsftpd is not listening'
     assert port.is_listening(80), 'port 80/varnishd is not listening'
@@ -47,16 +37,10 @@ def check():
     assert service.is_enabled('memcached'), 'memcached service not enabled'
     assert service.is_enabled('vsftpd'), 'vsftpd service not enabled'
 
-    assert wordpress_is_responding(), 'Wordpress did not respond as expected.'
+    assert http_check('http://localhost/', 'Powered by WordPress')
 
 
 @task
 def artifacts():
     env.platform_family = detect.detect()
-    logbasenames = ["bootstrap", "clone_kitchen", "run_chef"]
-    logdirs = run("/bin/bash -c 'echo /tmp/heat_chef/*-*-*-*-*'").split()
-    logs = []
-    for logdir in logdirs:
-        for basename in logbasenames:
-            logs.append(os.path.join(logdir, basename + ".log"))
-    get_artifacts(logs)
+    get_artifacts()
