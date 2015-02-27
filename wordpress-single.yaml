@@ -241,6 +241,7 @@ resources:
   # Server resources
   wordpress_server:
     type: "Rackspace::Cloud::Server"
+    depends_on: ssh_key
     properties:
       name: { get_param: server_hostname }
       flavor: { get_param: flavor }
