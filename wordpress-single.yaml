@@ -378,6 +378,10 @@ outputs:
     description: Server IP
     value: { get_attr: [wordpress_server, accessIPv4] }
 
+  domain:
+      description: domain for wordpress configuration
+      value: { get_param: domain }
+
   wordpress_user:
     description: WordPress User
     value: { get_param: username }
