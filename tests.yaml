@@ -10,6 +10,15 @@ test-cases:
         script:
           commands:
             - command: "python test/script/check_wp_version.py"
+    - check_wp_login:
+        script:
+          commands:
+            - command: "./test/script/wp_login.py"
+              command_args:
+                - { get_output: server_ip }
+                - { get_output: domain }
+                - { get_output: wordpress_user }
+                - { get_output: wordpress_password }
     - wordpress_server:
         fabric:
           # Fabric environment settings to use while running envassert script
