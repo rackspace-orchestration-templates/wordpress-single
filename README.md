@@ -64,7 +64,7 @@ the `-P` flag to specify a custom parameter.
 * `image`: Required: Server image used for all servers that are created as a
   part of this deployment. (Default: Ubuntu 12.04 LTS (Precise Pangolin))
 * `prefix`: Prefix to use for WordPress database tables (Default: wp_)
-* `version`: Version of WordPress to install (Default: 3.9.1)
+* `version`: Version of WordPress to install (Default: 4.2.2)
 * `database_name`: WordPress database name (Default: wordpress)
 * `flavor`: Required: Rackspace Cloud Server flavor to use. The size is based
   on the amount of RAM for the provisioned server. (Default: 4 GB Performance)

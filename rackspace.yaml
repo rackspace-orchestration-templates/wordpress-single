@@ -13,7 +13,7 @@ hidden_outputs:
   - wordpress_password
   - mysql_root_password
 abstract: |
-  A single Linux server running [WordPress](http://wordpress.org/about/) v3.9.2,
+  A single Linux server running [WordPress](http://wordpress.org/about/) v4.2.2,
   [Apache](http://httpd.apache.org/),
   [vsftpd](https://security.appspot.com/vsftpd.html#about),
   [Varnish](https://www.varnish-cache.org/about), and [MySQL
