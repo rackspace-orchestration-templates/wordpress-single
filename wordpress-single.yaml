@@ -22,8 +22,6 @@ parameter_groups:
   # different setups. If any of these parameters are changed, there is a good
   # chance this stack will fail to properly deploy.
   parameters:
-  - kitchen
-  - chef_version
   - version
   - prefix
 
@@ -49,10 +47,10 @@ parameters:
       Required: Server image used for all servers that are created as a part of
       this deployment.
     type: string
-    default: Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)
+    default: Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
     constraints:
     - allowed_values:
-      - Ubuntu 12.04 LTS (Precise Pangolin) (PVHVM)
+      - Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
       description: Must be a supported operating system.
 
   flavor:
@@ -99,32 +97,6 @@ parameters:
     - allowed_values:
       - "4.2.2"
 
-  # Optional Apache settings (SSL certs)
-  # ssl_private_key:
-  #  description: Private SSL key
-  #  type: string
-  #  default: ""
-  #  constraints:
-  #  - allowed_pattern: "^(.){0,5000}$"
-  #    description: "Key values must be under 5,000 characters"
-
-  # ssl_certificate:
-  #  description: Public SSL key
-  #  type: string
-  #  default: ""
-  #  constraints:
-  #  - allowed_pattern: "^(.){0,5000}$"
-  #    description: "Certificate values must be under 5,000 characters"
-
-  # ssl_intermediate_key:
-  #  description: Intermediate SSL key
-  #  type: string
-  #  default: ""
-  #  constraints:
-  #  - allowed_pattern: "^(.){0,5000}$"
-  #    description: "Intermediate values must be under 5,000 characters."
-
-  # Database and system user configuration
   prefix:
     label: Database Prefix
     description: Prefix to use for WordPress database tables
@@ -157,18 +129,6 @@ parameters:
       description: |
         Must be shorter than 16 characters and may only contain alphanumeric
         characters, ' ', '_', '.', '@', and/or '-'.
-
-  kitchen:
-    label: Kitchen URL
-    description: "URL for a git repo containing required cookbooks"
-    type: string
-    default: https://github.com/rackspace-orchestration-templates/wordpress-single.git
-
-  chef_version:
-    label: Chef Version
-    description: Version of chef client to use
-    type: string
-    default: 11.16.2
 
 resources:
   # Random password generation
@@ -221,7 +181,6 @@ resources:
       length: 32
       sequence: hexdigits
 
-  # SSH KEYS
   sync_key:
     type: "OS::Nova::KeyPair"
     properties:
@@ -238,6 +197,15 @@ resources:
       name: { get_param: "OS::stack_id" }
       save_private_key: true
 
+  wait_condition:
+    type: OS::Heat::SwiftSignal
+    properties:
+      handle: { get_resource: wait_condition_handle }
+      timeout: 1800
+
+  wait_condition_handle:
+    type: OS::Heat::SwiftSignalHandle
+
   # Server resources
   wordpress_server:
     type: "OS::Nova::Server"
@@ -246,128 +214,217 @@ resources:
       name: { get_param: server_hostname }
       flavor: { get_param: flavor }
       image: { get_param: image }
-      key_name: { get_resource: ssh_key }
+      key_name: jgb-macbookair # { get_resource: ssh_key }
       metadata:
         rax-heat: { get_param: "OS::stack_id" }
+      config_drive: "true"
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: |
+            #cloud-config
+            package_update: true
+            packages:
+              - git
+            write_files:
+            # Set salt-minion to only use local resources
+              - path: /etc/salt/minion.d/local.conf
+                permissions: '0644'
+                content: |
+                  file_client: local
+                  mysql.default_file: '/etc/mysql/debian.cnf'
+            # Write out Pillar top.sls
+              - path: /srv/pillar/top.sls
+                permissions: '0600'
+                content: |
+                  base:
+                    '*':
+                      - localhost
+            # Write out State top.sls
+              - path: /srv/salt/top.sls
+                permissions: '0644'
+                content: |
+                  base:
+                    '*':
+                      - salt-minion
+                      - apache
+                      - memcached
+                      - mysql
+                      - php
+            # Example Pillar Data using %value% notation
+            # See example pillar data from states repository.
+              - path: /srv/pillar/localhost.sls
+                permissions: '0600'
+                content: |
+                  apache:
+                    http_port: %http_port%
+                    https_port: %https_port%
+                    vhosts:
+                      - domain: %url%
+                        docroot: %destination%%public%
+                  mysql:
+                    root_password: %mysql_root_password%
+                  wordpress:
+                    domain: %url%
+                    user: %wp_user%
+                    pass: %database_password%
+                    db_host: localhost
+                    db_name: %db_name%
+                    db_user: %wp_user%
+                    db_pass: %database_password%
+            # Salt Bootstrap script
+              - path: /tmp/heat/salt_run.sh
+                permissions: '0500'
+                content: |
+                  #!/bin/bash
+                  # Install salt-minion using Salt Bootstrap
+                  curl -L https://bootstrap.saltstack.com | sudo sh -s --
+                  salt-minion --versions
+                  # Clone down States
+                  mkdir -p /tmp/heat/states
+                  git clone https://github.com/rackspace-orchestration-templates/salt-states.git /tmp/heat/states
+                  cp -nr /tmp/heat/states/* /srv/salt/
+                  # Run local highstate
+                  salt-call --local state.highstate
+                  # Open and Enable ufw
+                  ufw allow %https_port%
+                  ufw allow %http_port%
+                  ufw allow 22
+                  ufw --force enable
+                  wc_notify --data-binary '{"status": "SUCCESS"}'
+            runcmd:
+              - /tmp/heat/salt_run.sh
+          params:
+            wc_notify: { get_attr: ['wait_condition_handle', 'curl_cli'] }
+            "%mysql_root_password%": { get_attr: [mysql_root_password, value] }
+            "%destination%": "/var/www/vhosts"
+            "%http_port%": 80
+            "%https_port%": 443
+            "%packages%": '[]' # { get_param: domain }
+            "%public%": { get_param: domain }
+            "%url%": { get_param: domain }
+            "%wp_user%": { get_param: username }
+            "%db_name%": { get_param: database_name }
+            "%database_password%": { get_attr: [database_password, value] }
 
-  # Chef resources
-  wordpress_setup:
-    type: "OS::Heat::ChefSolo"
-    depends_on: wordpress_server
-    properties:
-      username: root
-      private_key: { get_attr: [ssh_key, private_key] }
-      host: { get_attr: [wordpress_server, accessIPv4] }
-      kitchen: { get_param: kitchen }
-      chef_version: { get_param: chef_version }
-      node:
-        apache:
-          listen_ports: [8080]
-          timeout: 30
-          serversignature: "Off"
-          traceenable: "Off"
-        hollandbackup:
-          main:
-            backup_directory: "/var/lib/mysqlbackup"
-            mysqldump:
-              user: "root"
-              host: "localhost"
-              password: { get_attr: [mysql_root_password, value] }
-        lsyncd:
-          interval: 5
-        memcached:
-          listen: "127.0.0.1"
-        monit:
-          notify_email: 'root@localhost'
-          mail_format:
-            from: 'monit@localhost'
-        mysql:
-          bind_address: "127.0.0.1"
-          server_root_password: { get_attr: [mysql_root_password, value] }
-          server_repl_password: { get_attr: [mysql_repl_password, value] }
-          server_debian_password: { get_attr: [mysql_debian_password, value] }
-          remove_test_database: true
-          remove_anonymous_users: true
-        sysctl:
-          values:
-            fs.inotify.max_user_watches: 1000000
-        varnish:
-          version: "3.0"
-          listen_port: "80"
-        vsftpd:
-          ipaddress: ''
-          write_enable: true
-          local_umask: "002"
-          chroot_local_user: false
-          hide_ids: false
-          ssl_enable: true
-          ssl_ciphers: "AES256-SHA"
-        wordpress:
-          version: { get_param: version }
-          server_aliases: [{ get_param: domain }]
-          dir:
-            str_replace:
-              template: "/var/www/vhosts/%domain%"
-              params:
-                "%domain%": { get_param: domain }
-          db:
-            name: { get_param: database_name }
-            user: { get_param: username }
-            pass: { get_attr: [database_password, value] }
-            host: "127.0.0.1"
-          keys:
-            auth: { get_attr: [wp_auth, value] }
-            logged_in: { get_attr: [wp_logged_in, value] }
-            nonce_key: { get_attr: [wp_nonce, value] }
-            secure_auth_key: { get_attr: [wp_secure_auth, value] }
-        rax:
-          apache:
-            # ssl_private_key: { get_param: ssl_private_key }
-            # ssl_certificate: { get_param: ssl_certificate }
-            # ssl_intermediate_certs: { get_param: ssl_intermediate_certs }
-            domain: { get_param: domain }
-          lsyncd:
-            ssh:
-              private_key: { get_attr: [sync_key, private_key] }
-          packages:
-            - php5-imagick
-          varnish:
-            master_backend: "localhost"
-          wordpress:
-            admin_user: { get_param: username }
-            admin_pass: { get_attr: [database_password, value] }
-            user:
-              name: { get_param: username }
-              group: { get_param: username }
-        run_list: ["recipe[apt]",
-                   "recipe[build-essential]",
-                   "recipe[rax-wordpress::apache-prep]",
-                   "recipe[sysctl::attribute_driver]",
-                   "recipe[mysql::server]",
-                   "recipe[rax-wordpress::mysql]",
-                   "recipe[hollandbackup]",
-                   "recipe[hollandbackup::mysqldump]",
-                   "recipe[hollandbackup::main]",
-                   "recipe[hollandbackup::backupsets]",
-                   "recipe[hollandbackup::cron]",
-                   "recipe[rax-wordpress::x509]",
-                   "recipe[memcached]",
-                   "recipe[php]",
-                   "recipe[rax-install-packages]",
-                   "recipe[wordpress]",
-                   "recipe[rax-wordpress::wp-setup]",
-                   "recipe[rax-wordpress::user]",
-                   "recipe[rax-wordpress::memcache]",
-                   "recipe[lsyncd]",
-                   "recipe[vsftpd]",
-                   "recipe[rax-wordpress::vsftpd]",
-                   "recipe[varnish::repo]",
-                   "recipe[varnish]",
-                   "recipe[rax-wordpress::apache]",
-                   "recipe[rax-wordpress::varnish]",
-                   "recipe[rax-wordpress::firewall]",
-                   "recipe[rax-wordpress::vsftpd-firewall]",
-                   "recipe[rax-wordpress::lsyncd]"]
+  # # Chef resources
+  # wordpress_setup:
+  #   type: "OS::Heat::ChefSolo"
+  #   depends_on: wordpress_server
+  #   properties:
+  #     username: root
+  #     private_key: { get_attr: [ssh_key, private_key] }
+  #     host: { get_attr: [wordpress_server, accessIPv4] }
+  #     kitchen: { get_param: kitchen }
+  #     chef_version: { get_param: chef_version }
+  #     node:
+  #       apache:
+  #         listen_ports: [8080]
+  #         timeout: 30
+  #         serversignature: "Off"
+  #         traceenable: "Off"
+  #       hollandbackup:
+  #         main:
+  #           backup_directory: "/var/lib/mysqlbackup"
+  #           mysqldump:
+  #             user: "root"
+  #             host: "localhost"
+  #             password: { get_attr: [mysql_root_password, value] }
+  #       lsyncd:
+  #         interval: 5
+  #       memcached:
+  #         listen: "127.0.0.1"
+  #       monit:
+  #         notify_email: 'root@localhost'
+  #         mail_format:
+  #           from: 'monit@localhost'
+  #       mysql:
+  #         bind_address: "127.0.0.1"
+  #         server_root_password: { get_attr: [mysql_root_password, value] }
+  #         server_repl_password: { get_attr: [mysql_repl_password, value] }
+  #         server_debian_password: { get_attr: [mysql_debian_password, value] }
+  #         remove_test_database: true
+  #         remove_anonymous_users: true
+  #       sysctl:
+  #         values:
+  #           fs.inotify.max_user_watches: 1000000
+  #       varnish:
+  #         version: "3.0"
+  #         listen_port: "80"
+  #       vsftpd:
+  #         ipaddress: ''
+  #         write_enable: true
+  #         local_umask: "002"
+  #         chroot_local_user: false
+  #         hide_ids: false
+  #         ssl_enable: true
+  #         ssl_ciphers: "AES256-SHA"
+  #       wordpress:
+  #         version: { get_param: version }
+  #         server_aliases: [{ get_param: domain }]
+  #         dir:
+  #           str_replace:
+  #             template: "/var/www/vhosts/%domain%"
+  #             params:
+  #               "%domain%": { get_param: domain }
+  #         db:
+  #           name: { get_param: database_name }
+  #           user: { get_param: username }
+  #           pass: { get_attr: [database_password, value] }
+  #           host: "127.0.0.1"
+  #         keys:
+  #           auth: { get_attr: [wp_auth, value] }
+  #           logged_in: { get_attr: [wp_logged_in, value] }
+  #           nonce_key: { get_attr: [wp_nonce, value] }
+  #           secure_auth_key: { get_attr: [wp_secure_auth, value] }
+  #       rax:
+  #         apache:
+  #           # ssl_private_key: { get_param: ssl_private_key }
+  #           # ssl_certificate: { get_param: ssl_certificate }
+  #           # ssl_intermediate_certs: { get_param: ssl_intermediate_certs }
+  #           domain: { get_param: domain }
+  #         lsyncd:
+  #           ssh:
+  #             private_key: { get_attr: [sync_key, private_key] }
+  #         packages:
+  #           - php5-imagick
+  #         varnish:
+  #           master_backend: "localhost"
+  #         wordpress:
+  #           admin_user: { get_param: username }
+  #           admin_pass: { get_attr: [database_password, value] }
+  #           user:
+  #             name: { get_param: username }
+  #             group: { get_param: username }
+  #       run_list: ["recipe[apt]",
+  #                  "recipe[build-essential]",
+  #                  "recipe[rax-wordpress::apache-prep]",
+  #                  "recipe[sysctl::attribute_driver]",
+  #                  "recipe[mysql::server]",
+  #                  "recipe[rax-wordpress::mysql]",
+  #                  "recipe[hollandbackup]",
+  #                  "recipe[hollandbackup::mysqldump]",
+  #                  "recipe[hollandbackup::main]",
+  #                  "recipe[hollandbackup::backupsets]",
+  #                  "recipe[hollandbackup::cron]",
+  #                  "recipe[rax-wordpress::x509]",
+  #                  "recipe[memcached]",
+  #                  "recipe[php]",
+  #                  "recipe[rax-install-packages]",
+  #                  "recipe[wordpress]",
+  #                  "recipe[rax-wordpress::wp-setup]",
+  #                  "recipe[rax-wordpress::user]",
+  #                  "recipe[rax-wordpress::memcache]",
+  #                  "recipe[lsyncd]",
+  #                  "recipe[vsftpd]",
+  #                  "recipe[rax-wordpress::vsftpd]",
+  #                  "recipe[varnish::repo]",
+  #                  "recipe[varnish]",
+  #                  "recipe[rax-wordpress::apache]",
+  #                  "recipe[rax-wordpress::varnish]",
+  #                  "recipe[rax-wordpress::firewall]",
+  #                  "recipe[rax-wordpress::vsftpd-firewall]",
+  #                  "recipe[rax-wordpress::lsyncd]"]
 
 outputs:
   private_key:
