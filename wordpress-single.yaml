@@ -283,8 +283,9 @@ resources:
                   users:
                     %wp_user%:
                       home: %destination%/%public%
-                    prime_group:
-                      name: www-data
+                      createhome: True
+                      prime_group:
+                        name: www-data
                   varnish:
                     listen_port: %varnish_port%
                   vsftpd:
