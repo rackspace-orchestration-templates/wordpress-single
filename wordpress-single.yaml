@@ -255,8 +255,8 @@ resources:
                       - mysql.grant
                       - php
                       - varnish
-                      - users
                       - wordpress
+                      - users
                       - vsftpd
             # Example Pillar Data using %value% notation
             # See example pillar data from states repository.
@@ -284,6 +284,7 @@ resources:
                     %wp_user%:
                       home: %destination%/%public%
                       createhome: True
+                      user_dir_mode: 0775
                       prime_group:
                         name: www-data
                   varnish:
