@@ -255,8 +255,8 @@ resources:
                       - mysql.grant
                       - php
                       - varnish
-                      - wordpress
                       - users
+                      - wordpress
                       - vsftpd
             # Example Pillar Data using %value% notation
             # See example pillar data from states repository.
@@ -283,6 +283,8 @@ resources:
                   users:
                     %wp_user%:
                       home: %destination%/%public%
+                    prime_group:
+                      name: www-data
                   varnish:
                     listen_port: %varnish_port%
                   vsftpd:
@@ -302,6 +304,7 @@ resources:
                     db_name: %db_name%
                     db_user: %wp_user%
                     db_pass: %database_password%
+                    group_write: True
             # Salt Bootstrap script
               - path: /tmp/heat/salt_run.sh
                 permissions: '0500'
