@@ -262,6 +262,7 @@ resources:
                 permissions: '0600'
                 content: |
                   apache:
+                    disable_default_site: True
                     http_port: %http_port%
                     https_port: %https_port%
                     vhosts:
