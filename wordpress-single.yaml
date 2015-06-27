@@ -256,6 +256,7 @@ resources:
                       - php
                       - varnish
                       - wordpress
+                      - users
                       - vsftpd
             # Example Pillar Data using %value% notation
             # See example pillar data from states repository.
@@ -279,6 +280,9 @@ resources:
                   mysql-user:
                     user: %wp_user%
                     pass: %database_password%
+                  users:
+                    %wp_user%:
+                      home: %destination%/%public%
                   varnish:
                     listen_port: %varnish_port%
                   vsftpd:
