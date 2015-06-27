@@ -278,7 +278,6 @@ resources:
                     listen_port: %varnish_port%
                   wordpress-user:
                     user: %wp_user%
-                    db_name: %db_name%
                     pass: %database_password%
                   wordpress:
                     domain: %url%
