@@ -288,6 +288,8 @@ resources:
                       - "ssl_ciphers=HIGH"
                       - "force_local_logins_ssl=NO"
                       - "force_local_data_ssl=NO"
+                      - "pasv_min_port=%vsftpd_pasv_min_port%"
+                      - "pasv_max_port=%vsftpd_pasv_max_port%"
                   wordpress:
                     domain: %url%
                     user: %wp_user%
@@ -315,6 +317,7 @@ resources:
                   ufw allow %varnish_port%
                   ufw allow 22
                   ufw allow 21
+                  ufw allow proto tcp to any port %vsftpd_pasv_min_port%:%vsftpd_pasv_max_port%
                   ufw --force enable
                   wc_notify --data-binary '{"status": "SUCCESS"}'
             runcmd:
@@ -332,6 +335,8 @@ resources:
             "%wp_user%": { get_param: username }
             "%db_name%": { get_param: database_name }
             "%database_password%": { get_attr: [database_password, value] }
+            "%vsftpd_pasv_min_port%": 10050
+            "%vsftpd_pasv_max_port%": 10100
 
   # # Chef resources
   # wordpress_setup:
