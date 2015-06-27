@@ -214,7 +214,7 @@ resources:
       name: { get_param: server_hostname }
       flavor: { get_param: flavor }
       image: { get_param: image }
-      key_name: jgb-macbookair # { get_resource: ssh_key }
+      key_name: { get_resource: ssh_key }
       metadata:
         rax-heat: { get_param: "OS::stack_id" }
       config_drive: "true"
@@ -250,7 +250,12 @@ resources:
                       - apache
                       - memcached
                       - mysql
+                      - mysql.database
+                      - mysql.user
+                      - mysql.grant
                       - php
+                      - varnish
+                      - wordpress
             # Example Pillar Data using %value% notation
             # See example pillar data from states repository.
               - path: /srv/pillar/localhost.sls
@@ -264,6 +269,17 @@ resources:
                         docroot: %destination%%public%
                   mysql:
                     root_password: %mysql_root_password%
+                  mysql-database:
+                    name: %db_name%
+                  mysql-grant:
+                    user:  %wp_user%
+                    database: %db_name%
+                  varnish:
+                    listen_port: %varnish_port%
+                  wordpress-user:
+                    user: %wp_user%
+                    db_name: %db_name%
+                    pass: %database_password%
                   wordpress:
                     domain: %url%
                     user: %wp_user%
@@ -297,8 +313,9 @@ resources:
           params:
             wc_notify: { get_attr: ['wait_condition_handle', 'curl_cli'] }
             "%mysql_root_password%": { get_attr: [mysql_root_password, value] }
-            "%destination%": "/var/www/vhosts"
-            "%http_port%": 80
+            "%destination%": "/var/www/"
+            "%varnish_port%": 80
+            "%http_port%": 8080
             "%https_port%": 443
             "%packages%": '[]' # { get_param: domain }
             "%public%": { get_param: domain }
