@@ -274,11 +274,11 @@ resources:
                   mysql-grant:
                     user:  %wp_user%
                     database: %db_name%
-                  varnish:
-                    listen_port: %varnish_port%
-                  wordpress-user:
+                  mysql-user:
                     user: %wp_user%
                     pass: %database_password%
+                  varnish:
+                    listen_port: %varnish_port%
                   wordpress:
                     domain: %url%
                     user: %wp_user%
