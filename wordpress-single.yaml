@@ -304,7 +304,7 @@ resources:
                   salt-call --local state.highstate
                   # Open and Enable ufw
                   ufw allow %https_port%
-                  ufw allow %http_port%
+                  ufw allow %varnish_port%
                   ufw allow 22
                   ufw --force enable
                   wc_notify --data-binary '{"status": "SUCCESS"}'
