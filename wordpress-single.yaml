@@ -322,7 +322,7 @@ resources:
           params:
             wc_notify: { get_attr: ['wait_condition_handle', 'curl_cli'] }
             "%mysql_root_password%": { get_attr: [mysql_root_password, value] }
-            "%destination%": "/var/www/"
+            "%destination%": "/var/www/vhosts"
             "%varnish_port%": 80
             "%http_port%": 8080
             "%https_port%": 443
