@@ -256,6 +256,7 @@ resources:
                       - php
                       - varnish
                       - wordpress
+                      - vsftpd
             # Example Pillar Data using %value% notation
             # See example pillar data from states repository.
               - path: /srv/pillar/localhost.sls
@@ -280,6 +281,13 @@ resources:
                     pass: %database_password%
                   varnish:
                     listen_port: %varnish_port%
+                  vsftpd:
+                    local_umask: 002
+                    additional_configuration:
+                      - "ssl_enable=YES"
+                      - "ssl_ciphers=HIGH"
+                      - "force_local_logins_ssl=NO"
+                      - "force_local_data_ssl=NO"
                   wordpress:
                     domain: %url%
                     user: %wp_user%
@@ -306,6 +314,7 @@ resources:
                   ufw allow %https_port%
                   ufw allow %varnish_port%
                   ufw allow 22
+                  ufw allow 21
                   ufw --force enable
                   wc_notify --data-binary '{"status": "SUCCESS"}'
             runcmd:
