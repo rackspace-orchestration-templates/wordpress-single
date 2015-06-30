@@ -206,63 +206,52 @@ resources:
   wait_condition_handle:
     type: OS::Heat::SwiftSignalHandle
 
-  # Server resources
-  wordpress_server:
-    type: "OS::Nova::Server"
-    depends_on: ssh_key
+  wordpress_cloud_init:
+    type: OS::Heat::CloudConfig
     properties:
-      name: { get_param: server_hostname }
-      flavor: { get_param: flavor }
-      image: { get_param: image }
-      key_name: { get_resource: ssh_key }
-      metadata:
-        rax-heat: { get_param: "OS::stack_id" }
-      config_drive: "true"
-      user_data_format: RAW
-      user_data:
-        str_replace:
-          template: |
-            #cloud-config
-            package_update: true
-            packages:
-              - git
-            write_files:
-            # Set salt-minion to only use local resources
-              - path: /etc/salt/minion.d/local.conf
-                permissions: '0644'
-                content: |
-                  file_client: local
-                  mysql.default_file: '/etc/mysql/debian.cnf'
-            # Write out Pillar top.sls
-              - path: /srv/pillar/top.sls
-                permissions: '0600'
-                content: |
-                  base:
-                    '*':
-                      - localhost
-            # Write out State top.sls
-              - path: /srv/salt/top.sls
-                permissions: '0644'
-                content: |
-                  base:
-                    '*':
-                      - salt-minion
-                      - apache
-                      - memcached
-                      - mysql
-                      - mysql.database
-                      - mysql.user
-                      - mysql.grant
-                      - php
-                      - varnish
-                      - wordpress
-                      - users
-                      - vsftpd
-            # Example Pillar Data using %value% notation
-            # See example pillar data from states repository.
-              - path: /srv/pillar/localhost.sls
-                permissions: '0600'
-                content: |
+      cloud_config:
+        package_update: true
+        packages:
+          - git
+        write_files:
+        # Set salt-minion to only use local resources
+          - path: /etc/salt/minion.d/local.conf
+            permissions: '0644'
+            content: |
+              file_client: local
+              mysql.default_file: '/etc/mysql/debian.cnf'
+        # Write out Pillar top.sls
+          - path: /srv/pillar/top.sls
+            permissions: '0600'
+            content: |
+              base:
+                '*':
+                  - localhost
+        # Write out State top.sls
+          - path: /srv/salt/top.sls
+            permissions: '0644'
+            content: |
+              base:
+                '*':
+                  - salt-minion
+                  - apache
+                  - memcached
+                  - mysql
+                  - mysql.database
+                  - mysql.user
+                  - mysql.grant
+                  - php
+                  - varnish
+                  - wordpress
+                  - users
+                  - vsftpd
+        # Example Pillar Data using %value% notation
+        # See example pillar data from states repository.
+          - path: /srv/pillar/localhost.sls
+            permissions: '0600'
+            content:
+              str_replace:
+                template: |
                   apache:
                     disable_default_site: True
                     http_port: %http_port%
@@ -307,10 +296,25 @@ resources:
                     db_user: %wp_user%
                     db_pass: %database_password%
                     group_write: True
-            # Salt Bootstrap script
-              - path: /tmp/heat/salt_run.sh
-                permissions: '0500'
-                content: |
+                params:
+                  "%http_port%": 8080
+                  "%https_port%": 443
+                  "%url%": { get_param: domain }
+                  "%destination%": "/var/www/vhosts"
+                  "%public%": { get_param: domain }
+                  "%mysql_root_password%": { get_attr: [mysql_root_password, value] }
+                  "%db_name%": { get_param: database_name }
+                  "%wp_user%": { get_param: username }
+                  "%database_password%": { get_attr: [database_password, value] }
+                  "%varnish_port%": 80
+                  "%vsftpd_pasv_min_port%": 10050
+                  "%vsftpd_pasv_max_port%": 10100
+        # Salt Bootstrap script
+          - path: /tmp/heat/salt_run.sh
+            permissions: '0500'
+            content:
+              str_replace:
+                template: |
                   #!/bin/bash
                   # Install salt-minion using Salt Bootstrap
                   curl -L https://bootstrap.saltstack.com | sudo sh -s --
@@ -329,23 +333,29 @@ resources:
                   ufw allow proto tcp to any port %vsftpd_pasv_min_port%:%vsftpd_pasv_max_port%
                   ufw --force enable
                   wc_notify --data-binary '{"status": "SUCCESS"}'
-            runcmd:
-              - /tmp/heat/salt_run.sh
-          params:
-            wc_notify: { get_attr: ['wait_condition_handle', 'curl_cli'] }
-            "%mysql_root_password%": { get_attr: [mysql_root_password, value] }
-            "%destination%": "/var/www/vhosts"
-            "%varnish_port%": 80
-            "%http_port%": 8080
-            "%https_port%": 443
-            "%packages%": '[]' # { get_param: domain }
-            "%public%": { get_param: domain }
-            "%url%": { get_param: domain }
-            "%wp_user%": { get_param: username }
-            "%db_name%": { get_param: database_name }
-            "%database_password%": { get_attr: [database_password, value] }
-            "%vsftpd_pasv_min_port%": 10050
-            "%vsftpd_pasv_max_port%": 10100
+                params:
+                  wc_notify: { get_attr: ['wait_condition_handle', 'curl_cli'] }
+                  "%https_port%": 443
+                  "%varnish_port%": 80
+                  "%vsftpd_pasv_min_port%": 10050
+                  "%vsftpd_pasv_max_port%": 10100
+        runcmd:
+          - /tmp/heat/salt_run.sh
+
+  # Server resources
+  wordpress_server:
+    type: "OS::Nova::Server"
+    depends_on: ssh_key
+    properties:
+      name: { get_param: server_hostname }
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_resource: ssh_key }
+      metadata:
+        rax-heat: { get_param: "OS::stack_id" }
+      config_drive: "true"
+      user_data_format: RAW
+      user_data: { get_resource: wordpress_cloud_init }
 
 outputs:
   private_key:
