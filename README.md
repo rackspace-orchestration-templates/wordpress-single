@@ -6,15 +6,16 @@ This is a template for deploying a [WordPress](http://wordpress.org/) server
 on a single Linux server with [OpenStack
 Heat](https://wiki.openstack.org/wiki/Heat) on the [Rackspace
 Cloud](http://www.rackspace.com/cloud/). This template is leveraging
-[chef-solo](http://docs.opscode.com/chef_solo.html) to setup the server.
+[salt](http://saltstack.com/) to setup the server.
 
 Requirements
 ============
 * A Heat provider that supports the following:
-  * OS::Nova::KeyPair
-  * Rackspace::Cloud::Server
-  * OS::Heat::RandomString
-  * OS::Heat::ChefSolo
+* OS::Heat::RandomString
+* OS::Heat::SwiftSignal
+* OS::Heat::SwiftSignalHandle
+* OS::Nova::KeyPair
+* OS::Nova::Server
 * An OpenStack username, password, and tenant id.
 * [python-heatclient](https://github.com/openstack/python-heatclient)
 `>= v0.2.8`:
@@ -62,16 +63,10 @@ the `-P` flag to specify a custom parameter.
   wp_user)
 * `domain`: Domain to be used with WordPress site (Default: example.com)
 * `image`: Required: Server image used for all servers that are created as a
-  part of this deployment. (Default: Ubuntu 12.04 LTS (Precise Pangolin))
-* `prefix`: Prefix to use for WordPress database tables (Default: wp_)
-* `version`: Version of WordPress to install (Default: 4.2.2)
+  part of this deployment. (Default: Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM))
 * `database_name`: WordPress database name (Default: wordpress)
 * `flavor`: Required: Rackspace Cloud Server flavor to use. The size is based
   on the amount of RAM for the provisioned server. (Default: 4 GB Performance)
-* `chef_version`: Version of chef client to use (Default: 11.12.8)
-* `kitchen`: URL for a git repo containing required cookbooks (Default:
-  https://github.com/rackspace-orchestration-templates/wordpress-multi.git)
-
 
 Outputs
 =======
@@ -134,7 +129,7 @@ the WordPress username and password provided as the credentials for FTP.
 The MySQL root password is included in the outs section of this deployment.
 If you do lose the password, it is also available in /root/.my.cnf. MySQL
 backups are performed locally by [Holland](http://wiki.hollandbackup.org/). The
-backups will be stored in /var/lib/mysqlbackup.
+backups will be stored in /var/spool/holland.
 
 Updating WordPress
 ==================

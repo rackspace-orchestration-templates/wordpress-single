@@ -1,7 +1,7 @@
 schema-version: 1.0.0
 application-family: CMS
 application-name: WordPress
-application-version: 4.2.2
+application-version: latest
 flavor: Single Linux server
 flavor-weight: 2
 reach-info:
@@ -63,9 +63,9 @@ instructions: |
   tools to move your content if you need to grow your Cloud footprint.
 
   #### Details of Your Setup
-  This deployment was stood up using
-  [chef-solo](http://docs.opscode.com/chef_solo.html). Once the deployment is
-  up, chef will not run again, so it is safe to modify configurations.
+  This deployment was stood up using [salt](http://saltstack.com/). Once the
+  deployment is up, salt will not run again, so it is safe to modify
+  configurations.
 
   A system user of 'wp_user' or the username you provided as a part of your
   deployment has been created with the same password as your WordPress user.
@@ -103,7 +103,7 @@ instructions: |
   this deployment. If you do lose the password, it is also available in
   /root/.my.cnf. MySQL backups are performed locally by
   [Holland](http://wiki.hollandbackup.org/). The backups will be stored in
-  /var/lib/mysqlbackup.
+  /var/spool/holland.
 
   #### Logging in via SSH
   The private key provided in the passwords section can be used to login as
