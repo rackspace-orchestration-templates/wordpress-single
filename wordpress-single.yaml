@@ -344,7 +344,7 @@ resources:
       key_name: { get_resource: ssh_key }
       metadata:
         rax-heat: { get_param: "OS::stack_id" }
-      config_drive: "true"
+      config_drive: true
       user_data_format: RAW
       user_data: { get_resource: wordpress_cloud_init }
 
