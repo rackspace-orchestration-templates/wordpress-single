@@ -115,53 +115,6 @@ resources:
       length: 16
       sequence: lettersdigits
 
-  mysql_repl_password:
-    type: "OS::Heat::RandomString"
-    properties:
-      length: 16
-      sequence: lettersdigits
-
-  mysql_debian_password:
-    type: "OS::Heat::RandomString"
-    properties:
-      length: 16
-      sequence: lettersdigits
-
-  # Random strings for WP salting
-  wp_auth:
-    type: "OS::Heat::RandomString"
-    properties:
-      length: 32
-      sequence: hexdigits
-
-  wp_logged_in:
-    type: "OS::Heat::RandomString"
-    properties:
-      length: 32
-      sequence: hexdigits
-
-  wp_nonce:
-    type: "OS::Heat::RandomString"
-    properties:
-      length: 32
-      sequence: hexdigits
-
-  wp_secure_auth:
-    type: "OS::Heat::RandomString"
-    properties:
-      length: 32
-      sequence: hexdigits
-
-  sync_key:
-    type: "OS::Nova::KeyPair"
-    properties:
-      name:
-        str_replace:
-          template: "%stack_id%-sync"
-          params:
-            "%stack_id%": { get_param: "OS::stack_id" }
-      save_private_key: true
-
   ssh_key:
     type: "OS::Nova::KeyPair"
     properties:
@@ -344,7 +297,7 @@ resources:
       key_name: { get_resource: ssh_key }
       metadata:
         rax-heat: { get_param: "OS::stack_id" }
-      config_drive: "true"
+      config_drive: true
       user_data_format: RAW
       user_data: { get_resource: wordpress_cloud_init }
 
