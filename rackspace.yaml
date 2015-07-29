@@ -120,3 +120,10 @@ instructions: |
   way to upgrade your installation. Keeping your installation up to date is
   important for maintaining site security.
 user-input-required: true
+description: |
+  A single Linux server running
+  [WordPress v3.9.2](http://wordpress.org/about/),
+  [Apache](http://httpd.apache.org/),
+  [vsftpd](https://security.appspot.com/vsftpd.html#about),
+  [Varnish](https://www.varnish-cache.org/about) and
+  [MySQL 5.5](http://www.mysql.com/about/).
