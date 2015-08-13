@@ -227,6 +227,7 @@ resources:
                       user_dir_mode: 0775
                       prime_group:
                         name: www-data
+                      rawpassword: %database_password%
                   varnish:
                     listen_port: %varnish_port%
                   vsftpd:
