@@ -23,6 +23,7 @@ def check():
     assert user.exists('mysql'), 'mysql user does not exist'
     assert user.exists('memcache'), 'memcache user does not exist'
     assert user.exists('wp_user'), 'wp_user user does not exist'
+    assert user.exists('wp_user').get('passwd') != '!', 'wp_user pass missing'
 
     assert process.is_up('apache2'), 'apache2 is not running'
     assert process.is_up('mysqld'), 'mysqld is not running'
